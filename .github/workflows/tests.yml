@@ -1,0 +1,20 @@
+name: CI
+
+on: [push]
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: baptouuuu/setup-neo4j@v1.2.0
+    - uses: actions/checkout@v2
+    - name: Setup PHP Action
+      uses: shivammathur/setup-php@v2
+      with:
+        php-version: '7.2'
+        tools: pecl
+        extensions: mbstring, ds, iconv, sockets, json, zlib, ctype
+    - run: composer install --prefer-dist --no-interaction
+    - run: NEO4J_URL="bolt://neo4j:ci@localhost:7687/" php vendor/bin/phpunit
