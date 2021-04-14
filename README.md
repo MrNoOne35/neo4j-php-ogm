@@ -4,7 +4,7 @@ This a complete redevelopment of a Neo4j PHP OGM. It was inspired by [GraphAware
 
 A few features from Doctrine are being used, such as parsing and caching annotations.
 
-It uses [Laudis Neo4j PHP Client](https://github.com/neo4j-php/neo4j-php-client) which is the only client [recommended by Neo4j](https://neo4j.com/developer/php/).
+It uses [Laudis Neo4j PHP Client](https://github.com/neo4j-php/neo4j-php-client) which is the only PHP client [recommended by Neo4j](https://neo4j.com/developer/php/).
 
 This bundle supports lazy loading for entities and collections.
 
@@ -13,15 +13,15 @@ This bundle supports lazy loading for entities and collections.
 2. [Documentation](#Documentation)
     1. [Model](#Model)
     2. [Annotations](#Annotations)
-        1. [@OGM/Entity](#@OGM/Entity)
-        2. [@OGM/Relationship](#@OGM/Relationship)
-        3. [@OGM/Id](#@OGM/Id)
-        4. [@OGM/StartEntity](#@OGM/StartEntity)
-        5. [@OGM/EndEntity](#@OGM/EndEntity)
-        6. [@OGM/Property](#@OGM/Property)
-        7. [@OGM/Convert](#@OGM/Convert)
-        8. [@OGM/QueryResult](#@OGM/QueryResult)
-        9. [@OGM/Relation](#@OGM/Relation)
+        1. [@OGM/Entity](#OgmEntity)
+        2. [@OGM/Relationship](#OgmRelationship)
+        3. [@OGM/Id](#OgmId)
+        4. [@OGM/StartEntity](#OgmStartEntity)
+        5. [@OGM/EndEntity](#OgmEndEntity)
+        6. [@OGM/Property](#OgmProperty)
+        7. [@OGM/Convert](#OgmConvert)
+        8. [@OGM/QueryResult](#OgmQueryResult)
+        9. [@OGM/Relation](#OgmRelation)
     3. [Events](#Events)
         1. [NodeCreatedEvent](#NodeCreatedEvent)
         2. [NodeUpdatedEvent](#NodeUpdatedEvent)
@@ -46,7 +46,7 @@ An entity node must implement the **\Neo4j\OGM\Model\EntityInterface** interface
 
 A relationship node must implement the **\Neo4j\OGM\Model\RelationshipInterface** interface.
 
-If you want the OGM to automatically handle the create and update time for your nodes, you need to implement:
+If you want the OGM to automatically handle the *created* and *updated* time for the nodes, you need to implement:
 - **\Neo4j\OGM\Model\NodeCreatedAtInterface** interface, we also provide a trait **\Neo4j\OGM\Model\NodeCreatedAtTrait** you may use for a simple implementation.
 - **\Neo4j\OGM\Model\NodeUpdatedAtInterface** interface, we also provide a trait **\Neo4j\OGM\Model\NodeUpdatedAtTrait** you may use for a simple implementation.
 
@@ -327,7 +327,7 @@ Convert an **@OGM/Property** before storing it in Neo4j or when retrieving it fr
 |*options* | The options to pass to the converter | no | See below |
 
 
-**Options from "datetime" or "datetime_immutable"**
+**Options for "datetime" or "datetime_immutable"**
 
 |Option | Description | Required | Value |
 | --- | --- | --- | --- |
@@ -753,6 +753,9 @@ class Movie implements EntityInterface
     }
 }
 ```
+## Repository
+
+The default node repository is **Neo4j\OGM\Repository\BaseRepository**. If you create a custom repository, you either need to extend **Neo4j\OGM\Repository\BaseRepository** or to implement **Neo4j\OGM\Repository\RepositoryInterface**.
 
 ## Events
 
