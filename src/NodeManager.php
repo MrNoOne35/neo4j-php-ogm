@@ -88,6 +88,9 @@ class NodeManager implements NodeManagerInterface
         if ($classMetadata->getRepository()) {
             $repositoryClassName = $classMetadata->getRepository();
             $repository = new $repositoryClassName($this, $classMetadata->getName());
+            if (!($repository instanceof RepositoryInterface)) {
+                throw new \InvalidArgumentException(sprintf('%s must implement %s', $repositoryClassName, RepositoryInterface::class));
+            }
         } else {
             $repository = new BaseRepository($this, $classMetadata->getName());
         }
