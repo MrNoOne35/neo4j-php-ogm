@@ -15,19 +15,52 @@ use Neo4j\OGM\Model\NodeInterface;
 
 interface RepositoryInterface
 {
+    /**
+     * @return string The node class name handled by this repository
+     */
     public function getClassName(): string;
 
+    /**
+     * Finds an node by its Neo4j identifier.
+     *
+     * @param int $id the node id
+     *
+     * @return null|NodeInterface the node or null when not found
+     */
     public function find(int $id): ?NodeInterface;
 
-    /** @return NodeInterface[]|null[] */
+    /**
+     * Finds all nodes in the repository.
+     *
+     * @return null|NodeInterface[]
+     */
     public function findAll(): ?array;
 
-    /** @return NodeInterface[]|null[] */
+    /**
+     * Finds nodes by a set of criteria.
+     *
+     * @param array      $criteria the search criteria, the keys are properties of the handled node
+     * @param null|array $orderBy  an array of properties to sort by
+     * @param null|mixed $limit    the number of nodes to return
+     * @param null|mixed $offset   the offset of nodes to return
+     *
+     * @return null|NodeInterface[]
+     */
     public function findBy(array $criteria, array $orderBy = null, $limit = null, $offset = null): ?array;
 
+    /**
+     * Finds a single node by a set of criteria.
+     *
+     * @param array      $criteria the search criteria, the keys are properties of the handled node
+     * @param null|array $orderBy  an array of properties to sort by
+     */
     public function findOneBy(array $criteria, array $orderBy = null): ?NodeInterface;
 
-    /** @return NodeInterface[]|null[] */
+    /**
+     * Search nodes.
+     *
+     * @return null|NodeInterface[]
+     */
     public function matching(Criteria $criteria): ?array;
 
     /**
@@ -59,4 +92,11 @@ interface RepositoryInterface
      * @return true if the node was reloaded
      */
     public function reload(NodeInterface $node): void;
+
+    /**
+     * Counts nodes by a set of criteria.
+     *
+     * @return int the cardinality of the nodes that match the given criteria
+     */
+    public function count(array $criteria): int;
 }

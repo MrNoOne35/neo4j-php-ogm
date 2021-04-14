@@ -24,15 +24,15 @@ class BaseRepository implements RepositoryInterface
 
     protected ClassMetadata $classMetadata;
 
-    protected NodeManagerInterface $nm;
+    protected NodeManagerInterface $_nm;
 
     public function __construct(
         NodeManagerInterface $nm,
         string $className
     ) {
-        $this->nm = $nm;
+        $this->_nm = $nm;
         $this->className = $className;
-        $this->classMetadata = $this->nm->getMetadataCache()->getClassMetadata($className);
+        $this->classMetadata = $nm->getMetadataCache()->getClassMetadata($className);
 
         $nm->setRepository($className, $this);
     }
@@ -44,7 +44,7 @@ class BaseRepository implements RepositoryInterface
 
     public function find(int $id): ?NodeInterface
     {
-        $cachedNode = $this->nm->getNodesCache()->get($this->className, $id);
+        $cachedNode = $this->_nm->getNodesCache()->get($this->className, $id);
         if ($cachedNode) {
             return $cachedNode;
         }
@@ -62,8 +62,8 @@ class BaseRepository implements RepositoryInterface
         $criteria = $this->buildCriteria($filters, $orderBy, $offset, $limit);
 
         $identifier = $this->getIdentifier();
-        $stmt = $this->nm->getQueryBuilder()->getSearchQuery($this->className, $identifier, $criteria);
-        $result = $this->nm->getClient()->runStatement($stmt);
+        $stmt = $this->_nm->getQueryBuilder()->getSearchQuery($this->className, $identifier, $criteria);
+        $result = $this->_nm->getClient()->runStatement($stmt);
 
         return $this->hydrateEntities($identifier, $result);
     }
@@ -73,8 +73,8 @@ class BaseRepository implements RepositoryInterface
         $criteria = $this->buildCriteria($filters, $orderBy, null, 1);
 
         $identifier = $this->getIdentifier();
-        $stmt = $this->nm->getQueryBuilder()->getSearchQuery($this->className, $identifier, $criteria);
-        $result = $this->nm->getClient()->runStatement($stmt);
+        $stmt = $this->_nm->getQueryBuilder()->getSearchQuery($this->className, $identifier, $criteria);
+        $result = $this->_nm->getClient()->runStatement($stmt);
         if (count($result) > 1) {
             throw new \LogicException(sprintf('Expected only 1 record, got %d', count($result)));
         }
@@ -89,8 +89,8 @@ class BaseRepository implements RepositoryInterface
     public function matching(Criteria $criteria): ?array
     {
         $identifier = $this->getIdentifier();
-        $stmt = $this->nm->getQueryBuilder()->getSearchQuery($this->className, $identifier, $criteria);
-        $result = $this->nm->getClient()->runStatement($stmt);
+        $stmt = $this->_nm->getQueryBuilder()->getSearchQuery($this->className, $identifier, $criteria);
+        $result = $this->_nm->getClient()->runStatement($stmt);
 
         return $this->hydrateEntities($identifier, $result);
     }
@@ -102,15 +102,15 @@ class BaseRepository implements RepositoryInterface
         $insert = null === $id;
 
         $stmt = $insert ?
-            $this->nm->getQueryBuilder()->getCreateQuery($node, $identifier)
+            $this->_nm->getQueryBuilder()->getCreateQuery($node, $identifier)
             :
-            $this->nm->getQueryBuilder()->getUpdateQuery($node, $identifier);
+            $this->_nm->getQueryBuilder()->getUpdateQuery($node, $identifier);
 
         if (null === $stmt) {
             return 0;
         }
 
-        $result = $this->nm->getClient()->runStatement($stmt);
+        $result = $this->_nm->getClient()->runStatement($stmt);
         if (!count($result)) {
             return 0;
         }
@@ -127,12 +127,12 @@ class BaseRepository implements RepositoryInterface
                 throw new \RuntimeException('Failed to handle inserted node: unexpected value');
             }
             $this->classMetadata->setIdValue($node, $id);
-            $this->nm->getEventDispatcher()->dispatch(new NodeCreatedEvent($node));
+            $this->_nm->getEventDispatcher()->dispatch(new NodeCreatedEvent($node));
         } else {
-            $this->nm->getEventDispatcher()->dispatch(new NodeUpdatedEvent($node));
+            $this->_nm->getEventDispatcher()->dispatch(new NodeUpdatedEvent($node));
         }
 
-        $this->nm->getNodesCache()->put($this->className, $id, $node);
+        $this->_nm->getNodesCache()->put($this->className, $id, $node);
 
         return count($result);
     }
@@ -144,16 +144,16 @@ class BaseRepository implements RepositoryInterface
             return 0;
         }
 
-        $this->nm->getNodesCache()->remove($this->className, $id);
+        $this->_nm->getNodesCache()->remove($this->className, $id);
 
         $identifier = $this->getIdentifier();
 
-        $stmt = $this->nm->getQueryBuilder()->getDetachDeleteQuery($node, $identifier);
-        $result = $this->nm->getClient()->runStatement($stmt);
+        $stmt = $this->_nm->getQueryBuilder()->getDetachDeleteQuery($node, $identifier);
+        $result = $this->_nm->getClient()->runStatement($stmt);
 
         try {
             if (count($result) && $result->first()->get('ctr')) {
-                $this->nm->getEventDispatcher()->dispatch(new NodeDeletedEvent($node));
+                $this->_nm->getEventDispatcher()->dispatch(new NodeDeletedEvent($node));
 
                 return $result->first()->get('ctr');
             }
@@ -166,7 +166,7 @@ class BaseRepository implements RepositoryInterface
     public function refresh(NodeInterface $node): void
     {
         $this->reload($node);
-        $this->nm->getEventDispatcher()->dispatch(new NodeUpdatedEvent($node));
+        $this->_nm->getEventDispatcher()->dispatch(new NodeUpdatedEvent($node));
     }
 
     public function reload(NodeInterface $node): void
@@ -179,13 +179,31 @@ class BaseRepository implements RepositoryInterface
 
         $criteria = $this->buildCriteria(['id()' => $id], null, null, 1);
 
-        $stmt = $this->nm->getQueryBuilder()->getSearchQuery($this->className, $identifier, $criteria);
-        $result = $this->nm->getClient()->runStatement($stmt);
+        $stmt = $this->_nm->getQueryBuilder()->getSearchQuery($this->className, $identifier, $criteria);
+        $result = $this->_nm->getClient()->runStatement($stmt);
         if (1 !== count($result)) {
             throw new \LogicException(sprintf('Expected only 1 record, got %d', count($result)));
         }
         $values = $result->first()->get($identifier.'_value');
-        $this->nm->getHydrator()->popuplate($this->nm, $node, $values);
+        $this->_nm->getHydrator()->popuplate($this->_nm, $node, $values);
+    }
+
+    public function count(array $filters): int
+    {
+        $criteria = $this->buildCriteria($filters);
+
+        $identifier = $this->getIdentifier();
+        $stmt = $this->_nm->getQueryBuilder()->getCountQuery($this->className, $identifier, $criteria);
+        $result = $this->_nm->getClient()->runStatement($stmt);
+        if (1 !== count($result)) {
+            return 0;
+        }
+
+        try {
+            return $result->first()->get($identifier.'_value');
+        } catch (\Throwable $e) {
+            return 0;
+        }
     }
 
     protected function buildCriteria(array $filters, ?array $orderings = null, $firstResult = null, $maxResults = null): Criteria
@@ -197,6 +215,11 @@ class BaseRepository implements RepositoryInterface
         }
 
         return $criteria;
+    }
+
+    protected function getNodeManager(): NodeManagerInterface
+    {
+        return $this->_nm;
     }
 
     protected function getIdentifier(): string
@@ -211,7 +234,7 @@ class BaseRepository implements RepositoryInterface
         foreach ($entries as $entry) {
             $node = new $this->className();
             $values = $entry->get($identifier.'_value');
-            $this->nm->getHydrator()->popuplate($this->nm, $node, $values);
+            $this->_nm->getHydrator()->popuplate($this->_nm, $node, $values);
             $entities[] = $node;
         }
 

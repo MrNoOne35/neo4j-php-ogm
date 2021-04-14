@@ -23,6 +23,7 @@ use Neo4j\OGM\Tests\Entity\NoneLazy\TestParent as NoneLazy_TestParent;
 use Neo4j\OGM\Tests\Entity\ParentLazy\TestBelongsTo as ParentLazy_TestBelongsTo;
 use Neo4j\OGM\Tests\Entity\ParentLazy\TestChild as ParentLazy_TestChild;
 use Neo4j\OGM\Tests\Entity\ParentLazy\TestParent as ParentLazy_TestParent;
+use Neo4j\OGM\Tests\Entity\TestEntity;
 
 /**
  * @internal
@@ -158,5 +159,29 @@ final class RepositoryTest extends Base
         $this->assertEquals($child->getId(), $loadedParent->getChild()->getId());
         $this->assertFalse($loadedParent->getChild() instanceof NodeProxyInterface);
         $this->assertEquals($child->getName(), $loadedParent->getChild()->getName());
+    }
+
+    public function testCount(): void
+    {
+        $entity = new TestEntity();
+        $entity->setName('TestEntity1');
+        $this->nm->getRepository(TestEntity::class)->save($entity);
+
+        $this->assertEquals(1, $this->nm->getRepository(TestEntity::class)->count([]));
+
+        $this->nm->getRepository(TestEntity::class)->delete($entity);
+        $this->assertEquals(0, $this->nm->getRepository(TestEntity::class)->count([]));
+
+        $entity = new TestEntity();
+        $entity->setName('TestEntity1');
+        $this->nm->getRepository(TestEntity::class)->save($entity);
+        $this->assertEquals(1, $this->nm->getRepository(TestEntity::class)->count(['name' => 'TestEntity1']));
+
+        $entity = new TestEntity();
+        $entity->setName('TestEntity2');
+        $this->nm->getRepository(TestEntity::class)->save($entity);
+        $this->assertEquals(1, $this->nm->getRepository(TestEntity::class)->count(['name' => 'TestEntity2']));
+
+        $this->assertEquals(2, $this->nm->getRepository(TestEntity::class)->count([]));
     }
 }

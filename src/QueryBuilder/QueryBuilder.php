@@ -100,6 +100,24 @@ class QueryBuilder implements QueryBuilderInterface
         return Statement::create($query, $params);
     }
 
+    public function getCountQuery(string $className, string $identifier, Criteria $criteria): Statement
+    {
+        $params = [];
+
+        $classMetadata = $this->metadataCache->getClassMetadata($className);
+        if (!($classMetadata instanceof EntityMetadata) && !($classMetadata instanceof RelationshipMetadata)) {
+            throw new \LogicException(sprintf('Unhandled node meta type %s', get_class($classMetadata)));
+        }
+
+        $query = $this->getNodeSearchQueryMatch($classMetadata, $identifier);
+        if ($criteria->getWhereExpression()) {
+            $query .= PHP_EOL.'WHERE '.$this->getSearchQueryWhere($identifier, $criteria->getWhereExpression(), $params);
+        }
+        $query .= PHP_EOL.'RETURN count('.$identifier.') AS '.$identifier.'_value';
+
+        return Statement::create($query, $params);
+    }
+
     public function getCreateQuery(NodeInterface $object, string $identifier): Statement
     {
         if ($object instanceof EntityInterface) {

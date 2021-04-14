@@ -18,6 +18,8 @@ interface QueryBuilderInterface
 {
     public function getSearchQuery(string $className, string $identifier, Criteria $criteria): Statement;
 
+    public function getCountQuery(string $className, string $identifier, Criteria $criteria): Statement;
+
     public function getCreateQuery(NodeInterface $object, string $identifier): Statement;
 
     /**
