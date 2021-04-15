@@ -53,6 +53,19 @@ class QueryBuilder implements QueryBuilderInterface
             $query .= PHP_EOL.'WHERE '.$this->getSearchQueryWhere($identifier, $criteria->getWhereExpression(), $params);
         }
 
+        $query .= $this->getCustomSearchQuery($className, $identifier, $params, $criteria->getOrderings(), $criteria->getMaxResults(), $criteria->getFirstResult());
+
+        return Statement::create($query, $params);
+    }
+
+    public function getCustomSearchQuery(string $className, string $identifier, array &$params, ?array $orderBy, ?int $limit, ?int $offset): string
+    {
+        $classMetadata = $this->metadataCache->getClassMetadata($className);
+        if (!($classMetadata instanceof EntityMetadata) && !($classMetadata instanceof RelationshipMetadata)) {
+            throw new \LogicException(sprintf('Unhandled node meta type %s', get_class($classMetadata)));
+        }
+
+        $query = '';
         $extraFields = [];
         if ($classMetadata instanceof EntityMetadata) {
             $knownRelationships = [];
@@ -86,9 +99,9 @@ class QueryBuilder implements QueryBuilderInterface
         $query .= ' AS '.$identifier.'_value';
 
         $queryExtra = $this->getSearchQueryExtra(
-            $criteria->getOrderings(),
-            $criteria->getMaxResults(),
-            $criteria->getFirstResult(),
+            $orderBy,
+            $limit,
+            $offset,
             [
                 'default' => $identifier,
             ]
@@ -97,7 +110,7 @@ class QueryBuilder implements QueryBuilderInterface
             $query .= PHP_EOL.$queryExtra;
         }
 
-        return Statement::create($query, $params);
+        return $query;
     }
 
     public function getCountQuery(string $className, string $identifier, Criteria $criteria): Statement
@@ -315,7 +328,6 @@ class QueryBuilder implements QueryBuilderInterface
 
         $propertyValues = [];
         foreach ($classMetadata->getPropertiesMetadata() as $field => $meta) {
-            $fieldId = $classMetadata->getName().$field;
             $fieldKey = $field;
 
             $v = $meta->getValue($object);
@@ -445,20 +457,6 @@ class QueryBuilder implements QueryBuilderInterface
         }
 
         return '';
-        /*
-        foreach ($criteria as $key => $criterion) {
-            if ($query) {
-                $query .= ' AND ';
-            }
-            if ('id()' === $key) {
-                $query .= 'id('.$identifier.') = $'.$identifier.'_id_val';
-                $params[$identifier.'_id_val'] = $criterion;
-            } else {
-                $query .= $identifier.'.'.$key.' = $'.$key;
-                $params[$key] = $criterion;
-            }
-        }
-        */
     }
 
     protected function getSearchQueryExtra(?array $orderBy, ?int $limit, ?int $offset, array $orderByMapping, string $pad = ''): string

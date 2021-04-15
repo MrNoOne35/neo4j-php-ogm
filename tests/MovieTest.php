@@ -126,4 +126,19 @@ final class MovieTest extends Base
         $this->assertEquals('Keanu Reeves', $matrix->getMaleActors()->get(2)->getName());
         $this->assertEquals('Emil Eifrem', $matrix->getMaleActors()->get(3)->getName());
     }
+
+    public function testCostars()
+    {
+        $query = 'MATCH (p:Person)-[:ACTED_IN]->(:Movie)<-[:ACTED_IN]-(costar:Person)';
+        $query .= PHP_EOL.'WHERE p.name = $name';
+        $query .= PHP_EOL.'WITH DISTINCT costar AS costar';
+        $params = ['name' => 'Tom Hanks'];
+
+        $costars = $this->nm->getRepository(Person::class)->findByQuery(
+            'costar',
+            $query,
+            $params
+        );
+        $this->assertEquals(34, count($costars));
+    }
 }

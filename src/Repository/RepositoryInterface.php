@@ -49,12 +49,36 @@ interface RepositoryInterface
     public function findBy(array $criteria, array $orderBy = null, $limit = null, $offset = null): ?array;
 
     /**
+     * Finds nodes by a query.
+     *
+     * @param string     $identifier the identifier of the node to search and hydrate. Example if your $query is 'MATCH (p:Person)-[:ACTED_IN]->(:Movie)<-[:ACTED_IN]-(costar:Person) WHERE p.name = $name' your identifier is "costar".
+     * @param string     $query      the first part of the query. Example 'MATCH (p:Person)-[:ACTED_IN]->(:Movie)<-[:ACTED_IN]-(costar:Person) WHERE p.name = $name'
+     * @param array      $params     params to be passed to the query. In the above example if would be '["name" => "Tom Hanks"]'
+     * @param null|array $orderBy    an array of properties to sort by
+     * @param null|mixed $limit      the number of nodes to return
+     * @param null|mixed $offset     the offset of nodes to return
+     *
+     * @return null|NodeInterface[]
+     */
+    public function findByQuery(string $identifier, string $query, array $params, array $orderBy = null, $limit = null, $offset = null): ?array;
+
+    /**
      * Finds a single node by a set of criteria.
      *
      * @param array      $criteria the search criteria, the keys are properties of the handled node
      * @param null|array $orderBy  an array of properties to sort by
      */
     public function findOneBy(array $criteria, array $orderBy = null): ?NodeInterface;
+
+    /**
+     * Finds a node by a query.
+     *
+     * @param string     $identifier the identifier of the node to search and hydrate. Example if your $query is 'MATCH (p:Person)-[:ACTED_IN]->(:Movie)<-[:ACTED_IN]-(costar:Person) WHERE p.name = $name' your identifier is "costar".
+     * @param string     $query      the first part of the query. Example 'MATCH (p:Person)-[:ACTED_IN]->(:Movie)<-[:ACTED_IN]-(costar:Person) WHERE p.name = $name'
+     * @param array      $params     params to be passed to the query. In the above example if would be '["name" => "Tom Hanks"]'
+     * @param null|array $orderBy    an array of properties to sort by
+     */
+    public function findOneByQuery(string $identifier, string $query, array $params, array $orderBy = null): ?NodeInterface;
 
     /**
      * Search nodes.

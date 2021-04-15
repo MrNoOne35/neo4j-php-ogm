@@ -30,9 +30,10 @@ This bundle supports lazy loading for entities and collections.
         3. [NodeDeletedEvent](#NodeDeletedEvent)
         4. [NodeLoadedEvent](#NodeLoadedEvent)
 4. [FAQ](#FAQ)
-    1. [How do I query a node by its Neo4j id?](#HowdoIqueryanodebyitsNeo4jid)
-    2. [Can I filter nodes by their relations?](#CanIfilternodesbytheirrelations)
-    3. [Can I run custom queries?](#CanIruncustomqueries)
+    1. [How do I query a node by its Neo4j id?](#how-do-i-query-a-node-by-its-neo4j-id)
+    2. [Can I filter nodes by their relations?](#can-i-filter-nodes-by-their-relations)
+    3. [Can I run custom queries?](#can-i-run-custom-queries)
+    4. [Can I run custom queries and get hydrated objects ?](#can-i-run-custom-queries-and-get-hydrated-objects)
 5. [License](#License)
 
 
@@ -842,6 +843,35 @@ Using OGM it's not possible at the time. But we're planning on adding this featu
 ## Can I run custom queries?
 
 Yes you can. The Neo4j client can be accessed through the *NodeManagerInterface::getClient* method.
+
+## Can I run custom queries and get hydrated objects ?
+
+Yes you can. You need to use **Neo4j\OGM\Repository\BaseRepository**'s **findByQuery** or **findOneByQuery** method.
+
+```php
+<?php
+namespace App;
+
+use Neo4j\OGM\NodeManagerInterface;
+use App\Entity\Movie;
+use App\Entity\Person;
+use App\Relationship\ActedIn;
+
+/** @return Person[]|null */
+function loadCostars(NodeManagerInterface $nm, string $name): ?array {
+    $query = 'MATCH (p:Person)-[:ACTED_IN]->(:Movie)<-[:ACTED_IN]-(costar:Person)';
+    $query .= PHP_EOL.'WHERE p.name = $name';
+    $query .= PHP_EOL.'WITH DISTINCT costar AS costar';
+    $params = ['name' => $name];
+
+    return $nm->getRepository(Person::class)->findByQuery(
+        'costar',
+        $query,
+        $params
+    );
+}
+
+```
 
 # License
 

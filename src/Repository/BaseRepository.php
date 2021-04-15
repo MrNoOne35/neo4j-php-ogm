@@ -68,6 +68,14 @@ class BaseRepository implements RepositoryInterface
         return $this->hydrateEntities($identifier, $result);
     }
 
+    public function findByQuery(string $identifier, string $query, array $params, array $orderBy = null, $limit = null, $offset = null): ?array
+    {
+        $query .= $this->_nm->getQueryBuilder()->getCustomSearchQuery($this->className, $identifier, $params, $orderBy, $limit, $offset);
+        $result = $this->_nm->getClient()->run($query, $params);
+
+        return $this->hydrateEntities($identifier, $result);
+    }
+
     public function findOneBy(array $filters, array $orderBy = null): ?NodeInterface
     {
         $criteria = $this->buildCriteria($filters, $orderBy, null, 1);
@@ -75,6 +83,22 @@ class BaseRepository implements RepositoryInterface
         $identifier = $this->getIdentifier();
         $stmt = $this->_nm->getQueryBuilder()->getSearchQuery($this->className, $identifier, $criteria);
         $result = $this->_nm->getClient()->runStatement($stmt);
+        if (count($result) > 1) {
+            throw new \LogicException(sprintf('Expected only 1 record, got %d', count($result)));
+        }
+        if (!count($result)) {
+            return null;
+        }
+        $entities = $this->hydrateEntities($identifier, $result);
+
+        return !empty($entities) ? $entities[0] : null;
+    }
+
+    public function findOneByQuery(string $identifier, string $query, array $params, array $orderBy = null): ?NodeInterface
+    {
+        $query .= $this->_nm->getQueryBuilder()->getCustomSearchQuery($this->className, $identifier, $params, $orderBy, 1, null);
+        $result = $this->_nm->getClient()->run($query, $params);
+
         if (count($result) > 1) {
             throw new \LogicException(sprintf('Expected only 1 record, got %d', count($result)));
         }
