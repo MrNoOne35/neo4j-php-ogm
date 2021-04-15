@@ -844,7 +844,7 @@ Using OGM it's not possible at the time. But we're planning on adding this featu
 
 Yes you can. The Neo4j client can be accessed through the *NodeManagerInterface::getClient* method.
 
-## Can I run custom queries and get hydrated objects ?
+## Can I run custom queries and get hydrated objects?
 
 Yes you can. You need to use **Neo4j\OGM\Repository\BaseRepository**'s **findByQuery** or **findOneByQuery** method.
 
