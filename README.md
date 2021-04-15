@@ -10,7 +10,8 @@ This bundle supports lazy loading for entities and collections.
 
 # Table of Contents
 1. [Installation](#Installation)
-2. [Documentation](#Documentation)
+2. [Example](#Example)
+3. [Documentation](#Documentation)
     1. [Model](#Model)
     2. [Annotations](#Annotations)
         1. [@OGM/Entity](#OgmEntity)
@@ -22,12 +23,17 @@ This bundle supports lazy loading for entities and collections.
         7. [@OGM/Convert](#OgmConvert)
         8. [@OGM/QueryResult](#OgmQueryResult)
         9. [@OGM/Relation](#OgmRelation)
-    3. [Events](#Events)
+    3. [Repository](#Repository)
+    4. [Events](#Events)
         1. [NodeCreatedEvent](#NodeCreatedEvent)
         2. [NodeUpdatedEvent](#NodeUpdatedEvent)
         3. [NodeDeletedEvent](#NodeDeletedEvent)
         4. [NodeLoadedEvent](#NodeLoadedEvent)
-3. [License](#License)
+4. [FAQ](#FAQ)
+    1. [How do I query a node by its Neo4j id?](#HowdoIqueryanodebyitsNeo4jid)
+    2. [Can I filter nodes by their relations?](#CanIfilternodesbytheirrelations)
+    3. [Can I run custom queries?](#CanIruncustomqueries)
+5. [License](#License)
 
 
 # Installation
@@ -37,9 +43,55 @@ Install with composer
 ```cli
 composer require giudicelli/neo4j-php-ogm
 ```
+# Example
 
+For more complete examples, please check the *examples* directory.
+
+```php
+<?php
+namespace App;
+
+use Neo4j\OGM\NodeManagerInterface;
+use App\Entity\Movie;
+use App\Entity\Person;
+use App\Relationship\ActedIn;
+
+function loadTomHanks(NodeManagerInterface $nm): Person {
+    $tomHanks = new Person();
+    $tomHanks
+        ->setName('Tom Hanks')
+        ->setBorn(1956)
+        ->setGender('MALE')
+    ;
+    $nm->getRepository(Person::class)->save($tomHanks);
+
+    $forrestGump = new Movie();
+    $forrestGump
+        ->setTitle('Forrest Gump')
+        ->setReleased(1994)
+        ->setTagline('The world will never be the same once you\'ve seen it through the eyes of Forrest Gump.')
+    ;
+    $nm->getRepository(Movie::class)->save($forrestGump);
+
+    // This is a relationship
+    $actedIn = new ActedIn();
+    $actedIn
+        ->setPerson($tomHanks)
+        ->setMovie($forrestGump)
+        ->setRoles(['Forrest Gump'])
+    ;
+    $nm->getRepository(ActedIn::class)->save($forrestGump);
+
+    // Now we need to refresh both entities
+    // for the newly linked entities to show up
+    $nm->getRepository(Person::class)->refresh($tomHanks);
+    $nm->getRepository(Movie::class)->refresh($forrestGump);
+
+    return $tomHanks;
+}
+
+```
 # Documentation
-
 ## Model
 
 An entity node must implement the **\Neo4j\OGM\Model\EntityInterface** interface.
@@ -770,6 +822,26 @@ The **\Neo4j\OGM\Event\NodeDeletedEvent** event is dispatched after a node (**@O
 
 ### NodeLoadedEvent
 The **\Neo4j\OGM\Event\NodeLoadedEvent** event is dispatched after a node (**@OGM\Entity** or **@OGM\Relationship**) has been fully loaded, not its eventual lazy instance.
+
+# FAQ
+
+## How do I query a node by its Neo4j id?
+
+We've introduced a special operator *id()* which allows you to query a node by its id.
+```php
+<?php
+
+$node = $repository->findOneBy(['id()' => $id]);
+
+```
+## Can I filter nodes by their relations?
+
+In Doctrine you can easily filter results by their relation, which ends up creating a join for you.
+Using OGM it's not possible at the time. But we're planning on adding this feature.
+
+## Can I run custom queries?
+
+Yes you can. The Neo4j client can be accessed through the *NodeManagerInterface::getClient* method.
 
 # License
 
