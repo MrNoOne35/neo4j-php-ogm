@@ -1,3 +1,5 @@
+[![Tests](https://github.com/giudicelli/neo4j-php-ogm/actions/workflows/tests.yml/badge.svg)](https://github.com/giudicelli/neo4j-php-ogm/actions/workflows/tests.yml)
+
 # Neo4j PHP OGM
 
 This a complete redevelopment of a Neo4j PHP OGM. It was inspired by [GraphAware Neo4j PHP OGM](https://github.com/graphaware/neo4j-php-ogm), although it doesn't support nearly as many features as Graphaware's OGM does. Redeveloping a full Doctrine compatible OGM would be too much work. But as features are added it will come close to it.
