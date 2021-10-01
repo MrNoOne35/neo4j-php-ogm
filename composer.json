@@ -1,5 +1,5 @@
 {
-    "name": "giudicelli/neo4j-php-ogm",
+    "name": "mrnoone35/neo4j-php-ogm",
     "description": "The Neo4j PHP OGM",
     "keywords": [],
     "homepage": "https://github.com/giudicelli/neo4j-php-ogm",
@@ -10,7 +10,7 @@
         }
     ],
     "require": {
-        "php": "^7.4",
+        "php": "^8.0",
         "ext-ds": "*",
         "doctrine/common": "^3.1",
         "laudis/neo4j-php-client": "^1.3",
