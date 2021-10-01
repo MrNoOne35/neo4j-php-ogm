@@ -25,9 +25,9 @@ class MetadataCache implements MetadataCacheInterface
     protected ?NodeAnnotationMetadataFactoryInterface $metadataFactory;
 
     /**
-     * @var EntityMetadata[]
+     * @var array[]
      */
-    protected array $loadedMetadata = [];
+    protected $loadedMetadata = [];
 
     public function __construct(?string $tmpDir = null)
     {
@@ -68,7 +68,7 @@ class MetadataCache implements MetadataCacheInterface
         return $classMetadata;
     }
 
-    public function getClassMetadataCached(string $className): EntityMetadata
+    public function getClassMetadataCached(string $className): EntityMetadata|RelationshipMetadata|array
     {
         if (!array_key_exists($className, $this->loadedMetadata)) {
             $classMetadata = $this->metadataFactory->create($className);
