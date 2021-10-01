@@ -129,7 +129,7 @@ PROXY;
                 $reflMethod = $reflClass->getMethod($g);
                 if ($reflMethod->hasReturnType()) {
                     $rt = $reflMethod->getReturnType();
-                    $getter .= ': '.($rt->allowsNull() ? ' ?' : '').$rt;
+                    $getter .= ': '.($rt->allowsNull() ? ' ?' : '').ltrim($rt, '?');
                 }
             }
 

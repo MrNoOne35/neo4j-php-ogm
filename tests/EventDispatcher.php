@@ -14,7 +14,7 @@ use Psr\EventDispatcher\EventDispatcherInterface;
 
 class EventDispatcher implements EventDispatcherInterface
 {
-    private $events = [];
+    private array $events = [];
 
     public function dispatch(object $event)
     {
@@ -26,7 +26,7 @@ class EventDispatcher implements EventDispatcherInterface
         $this->events = [];
     }
 
-    public function getEvent()
+    public function getEvent(): array
     {
         return $this->events;
     }

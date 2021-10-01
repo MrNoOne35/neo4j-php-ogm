@@ -878,3 +878,7 @@ function loadCostars(NodeManagerInterface $nm, string $name): ?array {
 # License
 
 The library is released under the MIT License, refer to the LICENSE file bundled with this package.
+
+#Windows test in Powershell
+
+$env:NEO4J_URL = 'bolt://neo4j:neo4j@localhost:7687'; php8 .\vendor\bin\phpunit

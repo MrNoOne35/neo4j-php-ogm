@@ -12,25 +12,28 @@ namespace Neo4j\OGM\Metadata\Cache;
 
 use Doctrine\Common\Annotations\AnnotationReader;
 use Doctrine\Common\Annotations\CachedReader;
-use Doctrine\Common\Cache\FilesystemCache;
+use Doctrine\Common\Cache\Psr6\DoctrineProvider;
 use Neo4j\OGM\Metadata\ClassMetadata;
 use Neo4j\OGM\Metadata\EntityMetadata;
 use Neo4j\OGM\Metadata\Factory\NodeAnnotationMetadataFactory;
 use Neo4j\OGM\Metadata\Factory\NodeAnnotationMetadataFactoryInterface;
 use Neo4j\OGM\Metadata\RelationshipMetadata;
+use Symfony\Component\Cache\Adapter\FilesystemAdapter;
 
 class MetadataCache implements MetadataCacheInterface
 {
     protected ?NodeAnnotationMetadataFactoryInterface $metadataFactory;
 
     /**
-     * @var AbstractGraphEntityMetadata[]
+     * @var EntityMetadata[]
      */
-    protected $loadedMetadata = [];
+    protected array $loadedMetadata = [];
 
     public function __construct(?string $tmpDir = null)
     {
-        $cache = new FilesystemCache(($tmpDir ?? sys_get_temp_dir()).DIRECTORY_SEPARATOR.'neo4j');
+        $cachePool = new FilesystemAdapter('', 0, ($tmpDir ?? sys_get_temp_dir()).DIRECTORY_SEPARATOR.'neo4j');
+        $cache = DoctrineProvider::wrap($cachePool);
+        //$cache = new FilesystemCache(($tmpDir ?? sys_get_temp_dir()).DIRECTORY_SEPARATOR.'neo4j');
         $reader = new CachedReader(new AnnotationReader(), $cache, true);
         $this->metadataFactory = new NodeAnnotationMetadataFactory($reader);
     }
@@ -65,7 +68,7 @@ class MetadataCache implements MetadataCacheInterface
         return $classMetadata;
     }
 
-    public function getClassMetadataCached(string $className): ClassMetadata
+    public function getClassMetadataCached(string $className): EntityMetadata
     {
         if (!array_key_exists($className, $this->loadedMetadata)) {
             $classMetadata = $this->metadataFactory->create($className);
